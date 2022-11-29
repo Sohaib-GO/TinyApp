@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 app.set("view engine", "ejs"); // set ejs as the view engine
 app.use(express.urlencoded({ extended: true })); // parse the body of the request
+app.use(express.static(__dirname + "/public")); // serve static files from the public folder
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -25,7 +26,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase , username: req.cookies["username"]};
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -34,9 +35,9 @@ const generateRandomString = () => {
 };
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"]};
+  const templateVars = { username: req.cookies["username"] };
 
-  res.render("urls_new" , templateVars);
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -77,7 +78,6 @@ app.post("/login", (req, res) => {
   const username = req.body.username;
   res.cookie("username", username);
   res.redirect("/urls");
-
 });
 
 // handle logout
@@ -86,8 +86,10 @@ app.get("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-
-
+// handle register
+app.get("/register", (req, res) => {
+  res.render("register");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
