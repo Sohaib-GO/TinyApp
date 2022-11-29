@@ -21,9 +21,72 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+ <!-- Bootstrap modal for editing URL -->
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-toggle="modal"
+    data-target="#editURL"
+  >
+
+  Edit URL
+  </button>
+
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="editURL"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="editURLLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editURLLabel">Edit URL</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="/urls/<%= id %>" method="POST">
+            <div class="form-group">
+              <label for="longURL">New URL</label>
+              <input
+                type="text"
+                class="form-control"
+                id="longURL"
+                name="longURL"
+                value="<%= longURL %>"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
       </div>
-      <div class="card-footer text-muted"></div>
     </div>
+
+</div>
+
+<!-- Back to main page   -->
+    </div>
+    <a href="/urls" class="btn btn-info">Back to URLs</a>
+
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
@@ -41,4 +104,5 @@
       crossorigin="anonymous"
     ></script>
   </body>
+  
 </html>
