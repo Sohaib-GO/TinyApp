@@ -123,6 +123,12 @@ app.post("/register", (req, res) => {
   }
 });
 
+// handle login
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+
 
 // handle logout
 app.get("/logout", (req, res) => {
