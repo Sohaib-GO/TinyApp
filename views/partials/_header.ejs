@@ -18,21 +18,20 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-      <% if (!username) { %>
+      <% if (!user) { %>
 
-         <!-- Login form  -->
-         <form action="/login" method="post" >
-          <div class="item"></i><input class="input" type="text" name="username" placeholder="Username"></div> 
+        <div class="navbar-nav ml-auto">
+          <a class="nav-item nav-link" href="/login">Login</a>
+          <a class="nav-item nav-link" href="/register">Register</a>
+        </div>
 
-          <div class="item submit"><button type="submit">Submit</button></div>
-      </form>
       <% } %>
 
     </div>
 
 
-    <% if (username) { %>
-      <div> Logged in as: <%= username %></div>
+    <% if (user) { %>
+      <div> Logged in as: <%= user.email %></div>
 
       <div class="navbar-nav">
         <a class="nav-item nav-link " href="/logout">Logout</a>
