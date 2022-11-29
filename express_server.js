@@ -26,6 +26,14 @@ const users = {
   },
 };
 
+const lookupUserByEmail = (email) => {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+  return null;
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -40,7 +48,10 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]],
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -58,7 +69,8 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    user: users[req.cookies["user_id"]],  };
+    user: users[req.cookies["user_id"]],
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -86,7 +98,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-
 // handle register
 app.get("/register", (req, res) => {
   res.render("register");
@@ -94,26 +105,30 @@ app.get("/register", (req, res) => {
 
 // handle register post
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  const  user = {
-    id,
-    email,
-    password,
-  };
-  users[id] = user;
-  res.cookie("user_id", id);
-  res.redirect("/urls");
+  const user = lookupUserByEmail(email);
+
+  if (email === "" || password === "") {
+    res.status(400).send("Please enter an email and password");
+    return;
+  } else if (user) {
+    res.status(400).send("Email already exists");
+    return;
+  } else {
+    const id = generateRandomString();
+    users[id] = { id, email, password };
+    res.cookie("user_id", id);
+    res.redirect("/urls");
+  }
 });
+
 
 // handle logout
 app.get("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
