@@ -128,12 +128,24 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
+// handle login post
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = lookupUserByEmail(email);
 
+  if (user && user.password === password) {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("Invalid email or password");
+  }
+});
 
 // handle logout
 app.get("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
