@@ -61,11 +61,17 @@ const generateRandomString = () => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-
-  res.render("urls_new", templateVars);
+  if (templateVars.user) {
+    res.render("urls_new", templateVars);
+  }
+  res.redirect("/login");
 });
 
 app.get("/urls/:id", (req, res) => {
+  // handle the case where the shortURL is not in the database
+  if (!urlDatabase[req.params.id]) {
+    res.status(404).send("URL not found");
+  }
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
@@ -75,10 +81,13 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
+  if (req.cookies["user_id"]) {
+    const shortURL = generateRandomString();
+    urlDatabase[shortURL] = req.body.longURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
 
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
+  res.status(403).send("You must be logged in to create a new URL");
 });
 
 app.get("/u/:id", (req, res) => {
@@ -88,18 +97,29 @@ app.get("/u/:id", (req, res) => {
 
 // Delete a URL
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  if (req.cookies["user_id"]) {
+    delete urlDatabase[req.params.id];
+    res.redirect("/urls");
+  }
+  res.status(403).send("You must be logged in to delete a URL");
 });
 
 // Update a URL
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
-  res.redirect("/urls");
+  if (req.cookies["user_id"]) {
+    urlDatabase[req.params.id] = req.body.longURL;
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("You must be logged in to update a URL");
+  }
 });
 
 // handle register
 app.get("/register", (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
+
   res.render("register");
 });
 
@@ -125,6 +145,11 @@ app.post("/register", (req, res) => {
 
 // handle login
 app.get("/login", (req, res) => {
+  // if user is logged in, redirect to /urls
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
+
   res.render("login");
 });
 
