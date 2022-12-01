@@ -8,9 +8,19 @@ app.set("view engine", "ejs"); // set ejs as the view engine
 app.use(express.urlencoded({ extended: true })); // parse the body of the request
 app.use(express.static(__dirname + "/public")); // serve static files from the public folder
 
+// const urlDatabase = {
+//   b2xVn2: "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com",
+// };
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -35,24 +45,49 @@ const lookupUserByEmail = (email) => {
   return null;
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello!");
 });
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/urls", (req, res) => {
+const userLinks = (id) => {
+  // returns an object of links for a specific user
+  let userLinks = {};
+  for (let link in urlDatabase) {
+    if (urlDatabase[link].userID === id) {
+      userLinks[link] = urlDatabase[link];
+    }
+  }
+  return userLinks;
+};
+
+app.get("/NOTuser", (req, res) => {
   const templateVars = {
-    urls: urlDatabase,
     user: users[req.cookies["user_id"]],
   };
-  res.render("urls_index", templateVars);
+  res.render("NOTuser", templateVars);
+});
+
+app.get("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    res.redirect("/NOTuser");
+  }
+  // a user can only see their own links and not others
+
+  if (req.cookies.user_id) {
+    let templateVars = {
+      urls: userLinks(req.cookies.user_id),
+      user: users[req.cookies.user_id],
+    };
+    res.render("urls_index", templateVars);
+  }
 });
 
 const generateRandomString = () => {
@@ -68,13 +103,20 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  // :id is a placeholder for the shortURL
   // handle the case where the shortURL is not in the database
+  if (!req.cookies.user_id) {
+    res.redirect("/NOTuser");
+  }
+
   if (!urlDatabase[req.params.id]) {
     res.status(404).send("URL not found");
   }
+
   const templateVars = {
+    // templateVars is an object that will be passed to the template
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     user: users[req.cookies["user_id"]],
   };
   res.render("urls_show", templateVars);
@@ -83,39 +125,51 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
     const shortURL = generateRandomString();
-    urlDatabase[shortURL] = req.body.longURL;
+    urlDatabase[shortURL] = {
+      longURL: req.body.longURL,
+      userID: req.cookies["user_id"],
+    };
     res.redirect(`/urls/${shortURL}`);
   }
 
-  res.status(403).send("You must be logged in to create a new URL");
+  res.status(403).redirect("/NOTuser");
 });
 
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
-// Delete a URL
 app.post("/urls/:id/delete", (req, res) => {
+  // delete a URL that belongs to the user
   if (req.cookies["user_id"]) {
-    delete urlDatabase[req.params.id];
-    res.redirect("/urls");
+    if (urlDatabase[req.params.id].userID === req.cookies["user_id"]) {
+      delete urlDatabase[req.params.id];
+
+      res.redirect("/urls");
+    }
+
+    res.status(403).send("You are not the owner of this URL");
   }
-  res.status(403).send("You must be logged in to delete a URL");
+  res.status(403).redirect("/NOTuser");
 });
 
-// Update a URL
 app.post("/urls/:id", (req, res) => {
+  // update a URL that belongs to the user
   if (req.cookies["user_id"]) {
-    urlDatabase[req.params.id] = req.body.longURL;
-    res.redirect("/urls");
+    if (urlDatabase[req.params.id].userID === req.cookies["user_id"]) {
+      urlDatabase[req.params.id].longURL = req.body.longURL;
+      res.redirect("/urls");
+    }
+
+    res.status(403).send("You are not the owner of this URL");
   } else {
-    res.status(403).send("You must be logged in to update a URL");
+    res.status(403).redirect("/NOTuser");
   }
 });
 
-// handle register
 app.get("/register", (req, res) => {
+  // register page
   if (req.cookies["user_id"]) {
     res.redirect("/urls");
   }
@@ -123,8 +177,8 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
-// handle register post
 app.post("/register", (req, res) => {
+  // register a new user
   const email = req.body.email;
   const password = req.body.password;
   const user = lookupUserByEmail(email);
@@ -143,8 +197,8 @@ app.post("/register", (req, res) => {
   }
 });
 
-// handle login
 app.get("/login", (req, res) => {
+  // login page
   // if user is logged in, redirect to /urls
   if (req.cookies["user_id"]) {
     res.redirect("/urls");
@@ -153,8 +207,8 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
-// handle login post
 app.post("/login", (req, res) => {
+  // login a user
   const email = req.body.email;
   const password = req.body.password;
   const user = lookupUserByEmail(email);
@@ -167,12 +221,13 @@ app.post("/login", (req, res) => {
   }
 });
 
-// handle logout
 app.get("/logout", (req, res) => {
+  // logout a user
   res.clearCookie("user_id");
   res.redirect("/login");
 });
 
 app.listen(PORT, () => {
+  // start the server
   console.log(`Example app listening on port ${PORT}!`);
 });
