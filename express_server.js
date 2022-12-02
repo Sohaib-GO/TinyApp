@@ -59,11 +59,10 @@ app.get("/", (req, res) => {
   res.redirect("urls");
 });
 
-
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     // if user is not logged in
-    res.redirect("/NOTuser");
+    return res.redirect("/NOTuser");
   }
 
   if (req.session.user_id) {
@@ -74,14 +73,14 @@ app.get("/urls", (req, res) => {
       urls: userLinks(user, urlDatabase),
       user: users[req.session.user_id],
     };
-    res.render("urls_index", templateVars);
+    return res.render("urls_index", templateVars);
   }
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.session.user_id] };
   if (templateVars.user) {
-    res.render("urls_new", templateVars);
+    return res.render("urls_new", templateVars);
   }
   res.redirect("/login");
 });
@@ -89,11 +88,17 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   // :id is a placeholder for the shortURL
   if (!req.session.user_id) {
-    res.redirect("/NOTuser");
+    return res.redirect("/NOTuser");
   }
   // handle the case where the shortURL is not in the database
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("URL not found");
+    return res.status(404).send("URL not found");
+  }
+  // only the user who created the shortURL can see it
+  if (req.session.user_id) {
+    if (urlDatabase[req.params.id].userID !== req.session.user_id) {
+      return res.status(403).send("You are not authorized to view this URL, it belongs to another user");
+    }
   }
 
   const templateVars = {
@@ -113,10 +118,10 @@ app.post("/urls", (req, res) => {
       longURL: req.body.longURL,
       userID: req.session.user_id,
     };
-    res.redirect(`/urls/${shortURL}`);
+    return res.redirect(`/urls/${shortURL}`);
   }
 
-  res.status(403).redirect("/NOTuser");
+  res.status(303).redirect("/NOTuser");
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -131,12 +136,12 @@ app.delete("/urls/:id", (req, res) => {
       // check if the user is the owner of the URL
       delete urlDatabase[req.params.id];
 
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
 
-    res.status(403).send("You are not the owner of this URL");
+    return res.status(403).send("You are not the owner of this URL");
   }
-  res.status(403).redirect("/NOTuser");
+  res.status(303).redirect("/NOTuser");
 });
 
 app.put("/urls/:id", (req, res) => {
@@ -146,19 +151,19 @@ app.put("/urls/:id", (req, res) => {
     if (urlDatabase[req.params.id].userID === req.session.user_id) {
       // if the user is the owner of the URL
       urlDatabase[req.params.id].longURL = req.body.longURL;
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
 
-    res.status(403).send("You are not the owner of this URL");
+    return res.status(403).send("You are not the owner of this URL");
   } else {
-    res.status(403).redirect("/NOTuser");
+    return res.status(303).redirect("/NOTuser");
   }
 });
 
 app.get("/register", (req, res) => {
   // registration page
   if (req.session.user_id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
 
   res.render("register");
@@ -172,11 +177,11 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password);
 
   if (!email || !password) {
-    res.status(400).send("Please enter an email and password");
+    return res.status(400).send("Please enter an email and password");
   }
 
   if (user) {
-    res.status(400).send("Email already exists");
+    return res.status(400).send("Email already exists");
   }
 
   const id = generateRandomString();
@@ -194,7 +199,7 @@ app.get("/login", (req, res) => {
   // login page
   // if user is logged in, redirect to /urls
   if (req.session.user_id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
 
   res.render("login");
@@ -210,12 +215,12 @@ app.post("/login", (req, res) => {
   if (user && bcrypt.compareSync(password, hashedPassword)) {
     // if the user exists and the password matches
     req.session.user_id = user.id;
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   if (!user) {
-    res.status(403).send(`${email} does not exist`);
+    return res.status(403).send(`${email} does not exist`);
   } else {
-    res.status(403).send("Invalid email or password");
+    return res.status(403).send("Invalid email or password");
   }
 });
 
