@@ -45,7 +45,6 @@ This is my second project at LHL after [Lotide](https://github.com/Sohaib-GO/lot
 
 - chai
 - mocha
-- nodemon
 
 ## Getting Started
 
