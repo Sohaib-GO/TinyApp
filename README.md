@@ -24,7 +24,7 @@ This is my second project at LHL after [Lotide](https://github.com/Sohaib-GO/lot
 
 #### _Create Your URLs Page_
 
-!["Create Your URLs Page"]()
+!["Create Your URLs Page"](https://github.com/Sohaib-GO/TinyApp/blob/master/demo-imgs/create.png)
 
 #### _Edit Your URLs Page_
 
