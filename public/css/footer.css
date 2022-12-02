@@ -1,0 +1,35 @@
+footer {
+  width: 100%;
+  height: 110px;
+  display: block;
+  background-color: #DD3444;
+  text-align: center;
+  position: fixed;
+bottom: 0;
+}
+
+.footer p {
+	margin-top: 25px;
+
+	font-size: 19px;
+  color: #fff;
+}
+
+/* Socials in Footer  */
+.footer a {
+    padding: 0 0.8rem;
+   color: #115487;
+    font-size: 1.5rem;
+
+
+  }
+ .footer i:hover {
+    font-size: 1.9rem;
+color: #000000;
+/* Tada effect  */
+animation-name: tada;
+animation-duration: 1s;
+animation-iteration-count: infinite;
+
+
+}

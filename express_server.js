@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -23,12 +22,8 @@ app.use(methodOverride("_method")); // allows us to use PUT and DELETE methods
 
 app.set("view engine", "ejs"); // set ejs as the view engine
 app.use(express.urlencoded({ extended: true })); // parse the body of the request
-app.use(express.static(__dirname + "/public")); // serve static files from the public folder
+app.use(express.static(__dirname + "/public")); // serve static files from the public folder (css, images, etc)
 
-// const urlDatabase = {
-//   b2xVn2: "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com",
-// };
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -53,18 +48,6 @@ const users = {
   },
 };
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 app.get("/NOTuser", (req, res) => {
   const templateVars = {
     user: users[req.session.user_id],
@@ -72,13 +55,19 @@ app.get("/NOTuser", (req, res) => {
   res.render("NOTuser", templateVars);
 });
 
+app.get("/", (req, res) => {
+  res.redirect("urls");
+});
+
+
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
+    // if user is not logged in
     res.redirect("/NOTuser");
   }
-  // a user can only see their own links and not others
 
   if (req.session.user_id) {
+    // a user can only see their own urls
     let user = req.session.user_id;
 
     let templateVars = {
@@ -99,11 +88,10 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   // :id is a placeholder for the shortURL
-  // handle the case where the shortURL is not in the database
   if (!req.session.user_id) {
     res.redirect("/NOTuser");
   }
-
+  // handle the case where the shortURL is not in the database
   if (!urlDatabase[req.params.id]) {
     res.status(404).send("URL not found");
   }
@@ -118,6 +106,7 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  // create a new shortURL
   if (req.session.user_id) {
     const shortURL = generateRandomString();
     urlDatabase[shortURL] = {
@@ -139,6 +128,7 @@ app.delete("/urls/:id", (req, res) => {
   // delete a URL that belongs to the user
   if (req.session.user_id) {
     if (urlDatabase[req.params.id].userID === req.session.user_id) {
+      // check if the user is the owner of the URL
       delete urlDatabase[req.params.id];
 
       res.redirect("/urls");
@@ -152,7 +142,9 @@ app.delete("/urls/:id", (req, res) => {
 app.put("/urls/:id", (req, res) => {
   // update a URL that belongs to the user
   if (req.session.user_id) {
+    // if the user is logged in
     if (urlDatabase[req.params.id].userID === req.session.user_id) {
+      // if the user is the owner of the URL
       urlDatabase[req.params.id].longURL = req.body.longURL;
       res.redirect("/urls");
     }
@@ -164,7 +156,7 @@ app.put("/urls/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  // register page
+  // registration page
   if (req.session.user_id) {
     res.redirect("/urls");
   }
@@ -216,6 +208,7 @@ app.post("/login", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password);
 
   if (user && bcrypt.compareSync(password, hashedPassword)) {
+    // if the user exists and the password matches
     req.session.user_id = user.id;
     res.redirect("/urls");
   }
