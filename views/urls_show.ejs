@@ -55,7 +55,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <form action="/urls/<%= id %>" method="POST">
+          <form action="/urls/<%= id %>?_method=PUT" method="POST">
             <div class="form-group">
               <label for="longURL">New URL</label>
               <input

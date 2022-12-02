@@ -4,14 +4,22 @@ const app = express();
 const PORT = 8080; // default port 8080
 const session = require("cookie-session");
 const bcrypt = require("bcryptjs");
-const { lookupUserByEmail, generateRandomString, userLinks } = require("./helpers");
+const methodOverride = require("method-override");
+const {
+  lookupUserByEmail,
+  generateRandomString,
+  userLinks,
+} = require("./helpers");
 
 app.use(
+  // middleware
   session({
     name: "session",
     keys: [""],
   })
 );
+
+app.use(methodOverride("_method")); // allows us to use PUT and DELETE methods
 
 app.set("view engine", "ejs"); // set ejs as the view engine
 app.use(express.urlencoded({ extended: true })); // parse the body of the request
@@ -45,8 +53,6 @@ const users = {
   },
 };
 
-
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -58,7 +64,6 @@ app.get("/", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
-
 
 app.get("/NOTuser", (req, res) => {
   const templateVars = {
@@ -83,7 +88,6 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
   }
 });
-
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.session.user_id] };
@@ -131,7 +135,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
   // delete a URL that belongs to the user
   if (req.session.user_id) {
     if (urlDatabase[req.params.id].userID === req.session.user_id) {
@@ -145,7 +149,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.status(403).redirect("/NOTuser");
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   // update a URL that belongs to the user
   if (req.session.user_id) {
     if (urlDatabase[req.params.id].userID === req.session.user_id) {

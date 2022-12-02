@@ -37,7 +37,7 @@
             <td><a href="/u/<%= id %>"><%= id %></td></a>
             <td><%= urls[id].longURL %></td>
             <td>
-              <form action="/urls/<%= id %>/delete" method="POST">
+              <form action="/urls/<%= id %>?_method=DELETE" method="POST">
                 <button type="submit" class="btn btn-outline-danger">
                   Delete
                 </button>
