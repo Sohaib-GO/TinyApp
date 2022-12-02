@@ -1,10 +1,11 @@
 {
   "name": "TinyApp",
   "version": "1.0.0",
-  "description": "",
+  "description": " A full stack web application built with Node and Express that allows users to shorten long URLs.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha", 
+    "start": "node express_server.js"
   },
   "repository": {
     "type": "git",
