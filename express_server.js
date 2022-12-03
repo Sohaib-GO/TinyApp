@@ -97,7 +97,11 @@ app.get("/urls/:id", (req, res) => {
   // only the user who created the shortURL can see it
   if (req.session.user_id) {
     if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-      return res.status(403).send("You are not authorized to view this URL, it belongs to another user");
+      return res
+        .status(403)
+        .send(
+          "You are not authorized to view this URL, it belongs to another user"
+        );
     }
   }
 
@@ -210,13 +214,14 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const user = lookupUserByEmail(email, users);
-  const hashedPassword = bcrypt.hashSync(password);
+  const hashedPasswordInDB = user.password;
 
-  if (user && bcrypt.compareSync(password, hashedPassword)) {
-    // if the user exists and the password matches
+
+  if (user && bcrypt.compareSync(password, hashedPasswordInDB)) { // if user exists and password matches
     req.session.user_id = user.id;
     return res.redirect("/urls");
   }
+
   if (!user) {
     return res.status(403).send(`${email} does not exist`);
   } else {
