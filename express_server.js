@@ -10,7 +10,7 @@ const {
   userLinks,
 } = require("./helpers");
 
-const {users , urlDatabase} = require("./data");
+const { users, urlDatabase } = require("./data");
 
 app.use(
   // middleware
@@ -168,6 +168,7 @@ app.post("/register", (req, res) => {
 
   const id = generateRandomString();
   users[id] = {
+    // add the new user to the users object
     id,
     email,
     password: hashedPassword,
@@ -198,9 +199,6 @@ app.post("/login", (req, res) => {
     // if user exists and password matches
     req.session.user_id = user.id;
     return res.redirect("/urls");
-  }
-  if (!email || !password) {
-    return res.status(400).send("Please enter an email and password");
   }
 
   if (!user) {
