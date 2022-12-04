@@ -10,6 +10,8 @@ const {
   userLinks,
 } = require("./helpers");
 
+const {users , urlDatabase} = require("./data");
+
 app.use(
   // middleware
   session({
@@ -23,30 +25,6 @@ app.use(methodOverride("_method")); // allows us to use PUT and DELETE methods
 app.set("view engine", "ejs"); // set ejs as the view engine
 app.use(express.urlencoded({ extended: true })); // parse the body of the request
 app.use(express.static(__dirname + "/public")); // serve static files from the public folder (css, images, etc)
-
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
 
 app.get("/NOTuser", (req, res) => {
   const templateVars = {
@@ -129,7 +107,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
+  const { longURL } = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
@@ -221,8 +199,8 @@ app.post("/login", (req, res) => {
     req.session.user_id = user.id;
     return res.redirect("/urls");
   }
-  if (!password) {
-    return res.status(400).send("Please enter a password");
+  if (!email || !password) {
+    return res.status(400).send("Please enter an email and password");
   }
 
   if (!user) {
