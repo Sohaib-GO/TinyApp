@@ -216,10 +216,13 @@ app.post("/login", (req, res) => {
   const user = lookupUserByEmail(email, users);
   const hashedPasswordInDB = user.password;
 
-
-  if (user && bcrypt.compareSync(password, hashedPasswordInDB)) { // if user exists and password matches
+  if (user && bcrypt.compareSync(password, hashedPasswordInDB)) {
+    // if user exists and password matches
     req.session.user_id = user.id;
     return res.redirect("/urls");
+  }
+  if (!password) {
+    return res.status(400).send("Please enter a password");
   }
 
   if (!user) {
