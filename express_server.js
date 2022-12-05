@@ -201,11 +201,7 @@ app.post("/login", (req, res) => {
     return res.redirect("/urls");
   }
 
-  if (!user) {
-    return res.status(403).send(`${email} does not exist`);
-  } else {
-    return res.status(403).send("Invalid email or password");
-  }
+  return res.status(403).send("Invalid email or password");
 });
 
 app.get("/logout", (req, res) => {
@@ -218,3 +214,5 @@ app.listen(PORT, () => {
   // start the server
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
